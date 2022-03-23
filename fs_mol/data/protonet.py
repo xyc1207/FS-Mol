@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 class MoleculeProtoNetFeatures(FSMolBatch):
     fingerprints: np.ndarray  # [num_samples, FP_DIM]
     descriptors: np.ndarray  # [num_samples, DESC_DIM]
+    dvmp_features: np.ndarray  # [num_samples, DVMP_DIM]
 
 
 @dataclass(frozen=True)
@@ -57,11 +58,13 @@ class FeaturisedPNTaskSample:
 def batcher_init_fn(batch_data: Dict[str, Any]):
     batch_data["fingerprints"] = []
     batch_data["descriptors"] = []
+    batch_data["dvmp_features"] = []
 
 
 def batcher_add_sample_fn(batch_data: Dict[str, Any], sample_id: int, sample: MoleculeDatapoint):
     batch_data["fingerprints"].append(sample.get_fingerprint())
     batch_data["descriptors"].append(sample.get_descriptors())
+    batch_data["dvmp_features"].append(sample.get_dvmp_features())
 
 
 def batcher_finalizer_fn(batch_data: Dict[str, Any]) -> Tuple[MoleculeProtoNetFeatures, np.ndarray]:
@@ -70,6 +73,7 @@ def batcher_finalizer_fn(batch_data: Dict[str, Any]) -> Tuple[MoleculeProtoNetFe
         MoleculeProtoNetFeatures(
             fingerprints=np.stack(batch_data["fingerprints"], axis=0),
             descriptors=np.stack(batch_data["descriptors"], axis=0),
+            dvmp_features=np.stack(batch_data["dvmp_features"], axis=0),
             **dataclasses.asdict(plain_batch),
         ),
         np.stack(batch_data["bool_labels"], axis=0),
@@ -141,6 +145,7 @@ def get_protonet_task_sample_iterable(
     max_num_nodes: Optional[int] = None,
     max_num_edges: Optional[int] = None,
     repeat: bool = False,
+    feature_folder: str = "/tmp"
 ) -> Iterable[FeaturisedPNTaskSample]:
     task_sampler = StratifiedTaskSampler(
         train_size_or_ratio=support_size, test_size_or_ratio=query_size
@@ -154,7 +159,7 @@ def get_protonet_task_sample_iterable(
     def path_to_batches_pipeline(paths: List[RichPath], idx: int):
         if len(paths) > 1:
             raise ValueError()
-        task = FSMolTask.load_from_file(paths[0])
+        task = FSMolTask.load_from_file(paths[0], feature_folder)
         num_task_samples = 0
         for _ in range(num_samples):
             try:

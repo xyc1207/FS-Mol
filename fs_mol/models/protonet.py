@@ -13,6 +13,7 @@ from fs_mol.data.protonet import ProtoNetBatch
 
 
 FINGERPRINT_DIM = 2048
+DVMP_DIM = 768
 PHYS_CHEM_DESCRIPTORS_DIM = 42
 
 
@@ -21,7 +22,8 @@ class PrototypicalNetworkConfig:
     # Model configuration:
     graph_feature_extractor_config: GraphFeatureExtractorConfig = GraphFeatureExtractorConfig()
     used_features: Literal[
-        "gnn", "ecfp", "pc-descs", "gnn+ecfp", "ecfp+fc", "pc-descs+fc", "gnn+ecfp+pc-descs+fc"
+        "gnn", "ecfp", "dvmp", "pc-descs", "gnn+ecfp", "ecfp+fc", "pc-descs+fc", "gnn+ecfp+pc-descs+fc",
+        "gnn+dvmp+fc", "gnn+ecfp+dvmp+fc"
     ] = "gnn+ecfp+fc"
     distance_metric: Literal["mahalanobis", "euclidean"] = "mahalanobis"
 
@@ -47,6 +49,8 @@ class PrototypicalNetwork(nn.Module):
                 fc_in_dim += self.config.graph_feature_extractor_config.readout_config.output_dim
             if "ecfp" in self.config.used_features:
                 fc_in_dim += FINGERPRINT_DIM
+            if "dvmp" in self.config.used_features:
+                fc_in_dim += DVMP_DIM
             if "pc-descs" in self.config.used_features:
                 fc_in_dim += PHYS_CHEM_DESCRIPTORS_DIM
 
@@ -70,6 +74,9 @@ class PrototypicalNetwork(nn.Module):
         if "ecfp" in self.config.used_features:
             support_features.append(input_batch.support_features.fingerprints)
             query_features.append(input_batch.query_features.fingerprints)
+        if "dvmp" in self.config.used_features:
+            support_features.append(input_batch.support_features.dvmp_features)
+            query_features.append(input_batch.query_features.dvmp_features)
         if "pc-descs" in self.config.used_features:
             support_features.append(input_batch.support_features.descriptors)
             query_features.append(input_batch.query_features.descriptors)

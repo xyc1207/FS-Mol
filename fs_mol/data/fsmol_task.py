@@ -55,6 +55,7 @@ class MoleculeDatapoint:
     bool_label: bool
     fingerprint: Optional[np.ndarray]
     descriptors: Optional[np.ndarray]
+    dvmp_features: Optional[np.ndarray]
 
     def get_fingerprint(self) -> np.ndarray:
         if self.fingerprint is not None:
@@ -80,6 +81,9 @@ class MoleculeDatapoint:
                 descriptors.append(descr_calc_fn(mol))
             return np.array(descriptors)
 
+    def get_dvmp_features(self) -> np.ndarray:
+        return self.dvmp_features
+
 
 @dataclass(frozen=True)
 class FSMolTask:
@@ -98,9 +102,14 @@ class FSMolTask:
         return list(pos_samples), list(neg_samples)
 
     @staticmethod
-    def load_from_file(path: RichPath) -> "FSMolTask":
+    def load_from_file(path: RichPath, feature_folder: str) -> "FSMolTask":
         samples = []
-        for raw_sample in path.read_by_file_suffix():
+        segs = str(path).split("/")
+        data_split = segs[-2].strip()
+        data_name = segs[-1].strip().replace(".jsonl.gz", "")
+        feature_path = f"{feature_folder}/{data_split}/{data_name}.npz"
+        dvmp_features=np.load(feature_path)
+        for idx, raw_sample in enumerate(path.read_by_file_suffix()):
             graph_data = raw_sample.get("graph")
 
             fingerprint_raw = raw_sample.get("fingerprints")
@@ -130,6 +139,7 @@ class FSMolTask:
                     numeric_label=float(raw_sample.get("RegressionProperty") or "nan"),
                     fingerprint=fingerprint,
                     descriptors=descriptors,
+                    dvmp_features=dvmp_features['transformerFeat'][idx, :],
                     graph=GraphData(
                         node_features=np.array(graph_data["node_features"], dtype=np.float32),
                         adjacency_lists=adjacency_lists,
@@ -140,7 +150,7 @@ class FSMolTask:
                     ),
                 )
             )
-
+        assert len(samples) == dvmp_features['transformerFeat'].shape[0]
         return FSMolTask(get_task_name_from_path(path), samples)
 
 

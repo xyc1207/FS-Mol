@@ -28,11 +28,11 @@ class DataFold(Enum):
     TEST = 2
 
 
-def default_reader_fn(paths: List[RichPath], idx: int) -> List[FSMolTask]:
+def default_reader_fn(paths: List[RichPath], idx: int, feature_folder: str) -> List[FSMolTask]:
     if len(paths) > 1:
         raise ValueError()
 
-    return [FSMolTask.load_from_file(paths[0])]
+    return [FSMolTask.load_from_file(paths[0], feature_folder)]
 
 
 class FSMolDataset:
@@ -45,12 +45,14 @@ class FSMolDataset:
         valid_data_paths: List[RichPath] = [],
         test_data_paths: List[RichPath] = [],
         num_workers: Optional[int] = None,
+        feature_folder: Optional[str] = None,
     ):
         self._fold_to_data_paths: Dict[DataFold, List[RichPath]] = {
             DataFold.TRAIN: train_data_paths,
             DataFold.VALIDATION: valid_data_paths,
             DataFold.TEST: test_data_paths,
         }
+        self.feature_folder = feature_folder
         self._num_workers = num_workers if num_workers is not None else os.cpu_count() or 1
         logger.info(f"Identified {len(self._fold_to_data_paths[DataFold.TRAIN])} training tasks.")
         logger.info(
@@ -119,10 +121,12 @@ class FSMolDataset:
         data_fold: DataFold,
         task_reader_fn: Callable[
             [List[RichPath], int], Iterable[TaskReaderResultType]
-        ] = default_reader_fn,
+        ] = None,
         repeat: bool = False,
         reader_chunk_size: int = 1,
     ) -> Iterable[TaskReaderResultType]:
+        if task_reader_fn is None:
+            task_reader_fn = lambda p, idx: default_reader_fn(p, idx, self.feature_folder)
         if self._num_workers == 0:
             return SequentialFileReaderIterable(
                 reader_fn=task_reader_fn,

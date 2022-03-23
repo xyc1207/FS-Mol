@@ -36,11 +36,14 @@ def parse_command_line():
         choices=[
             "gnn",
             "ecfp",
+            "dvmp",
             "pc-descs",
             "ecfp+fc",
             "pc-descs+fc",
             "gnn+ecfp+fc",
             "gnn+ecfp+pc-descs+fc",
+            "gnn+dvmp+fc", 
+            "gnn+ecfp+dvmp+fc"
         ],
         default="gnn+ecfp+fc",
         help="Choice of features to use",
@@ -108,6 +111,13 @@ def parse_command_line():
         default=None,
         help="Path to a pretrained GNN model to use as a starting point.",
     )
+
+    parser.add_argument(
+        "--feature-folder",
+        type=str,
+        default=None,
+        help="The folder of pre-trained features",
+    )
     args = parser.parse_args()
     return args
 
@@ -128,6 +138,7 @@ def make_trainer_config(args: argparse.Namespace) -> PrototypicalNetworkTrainerC
         num_train_steps=args.num_train_steps,
         learning_rate=args.lr,
         clip_value=args.clip_value,
+        feature_folder=args.feature_folder
     )
 
 
@@ -154,12 +165,13 @@ def main():
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception:
-        import traceback
-        import pdb
+    main()
+    # try:
+    #     main()
+    # except Exception:
+    #     import traceback
+    #     import pdb
 
-        _, value, tb = sys.exc_info()
-        traceback.print_exc()
-        pdb.post_mortem(tb)
+    #     _, value, tb = sys.exc_info()
+    #     traceback.print_exc()
+    #     pdb.post_mortem(tb)

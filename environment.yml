@@ -15,7 +15,7 @@ dependencies:
   - seaborn
   - tqdm
   - typing-extensions
-  - pytorch=1.10.0=py3.7_cuda11.3_cudnn8.2.0_0
+  - pytorch=1.10.0=py3.7_cuda10.2_cudnn7.6.5_0
   - pip:
       - docopt
       - dpu-utils>=0.2.13
@@ -26,7 +26,7 @@ dependencies:
       - pyprojroot
       - py-repo-root~=1.1.1
       # torch-scatter and friends:
-      - -f https://pytorch-geometric.com/whl/torch-1.10.0+cu113.html
+      - -f https://pytorch-geometric.com/whl/torch-1.10.0+cu102.html
       - torch-scatter
       - xlsxwriter
       - autorank

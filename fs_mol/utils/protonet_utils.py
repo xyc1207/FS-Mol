@@ -51,6 +51,7 @@ class PrototypicalNetworkTrainerConfig(PrototypicalNetworkConfig):
 
     learning_rate: float = 0.001
     clip_value: Optional[float] = None
+    feature_folder: Optional[str] = None
 
 
 def run_on_batches(
@@ -302,6 +303,7 @@ class PrototypicalNetworkTrainer(PrototypicalNetwork):
                 support_size=self.config.support_set_size,
                 query_size=self.config.query_set_size,
                 repeat=True,
+                feature_folder=self.config.feature_folder,
             )
         )
 
