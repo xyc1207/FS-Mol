@@ -97,6 +97,11 @@ class FSMolDataset:
             if task_list is None:
                 return fold_dir.get_filtered_files_in_dir("*.jsonl.gz")
             else:
+                available_task_names = set([
+                    f"{task_name}.jsonl.gz" for task_name in task_list[data_fold_name]])
+                return [file_name
+                    for file_name in fold_dir.get_filtered_files_in_dir("*.jsonl.gz") 
+                    if file_name.basename() in available_task_names]
                 return [
                     file_name
                     for file_name in fold_dir.get_filtered_files_in_dir("*.jsonl.gz")
