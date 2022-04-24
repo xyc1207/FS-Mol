@@ -131,16 +131,17 @@ def evaluate_protonet_model(
 
         return result_metrics
 
-    return eval_model(
-        test_model_fn=test_model_fn,
-        dataset=dataset,
-        train_set_sample_sizes=support_sizes,
-        out_dir=save_dir,
-        num_samples=num_samples,
-        test_size_or_ratio=query_size,
-        fold=data_fold,
-        seed=seed,
-    )
+    with torch.no_grad():
+        return eval_model(
+            test_model_fn=test_model_fn,
+            dataset=dataset,
+            train_set_sample_sizes=support_sizes,
+            out_dir=save_dir,
+            num_samples=num_samples,
+            test_size_or_ratio=query_size,
+            fold=data_fold,
+            seed=seed,
+        )
 
 
 def validate_by_finetuning_on_tasks(

@@ -72,7 +72,8 @@ def set_up_train_run(
     fsmol_dataset = FSMolDataset.from_directory(
         directory=RichPath.create(args.DATA_PATH),
         task_list_file=RichPath.create(args.task_list_file),
-        feature_folder=args.feature_folder
+        feature_folder=args.feature_folder,
+        num_workers=0
     )
 
     if args.azureml_logging:
