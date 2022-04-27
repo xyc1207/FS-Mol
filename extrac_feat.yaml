@@ -1,0 +1,32 @@
+description: PhillyTools ConfigFile Template for amlk8s jobs
+
+target:
+  service: amlk8s
+  name: itpeusp40cl
+  vc: resrchvc
+
+storage:
+    input:
+        storage_account_name: msralaphilly2
+        container_name: ml-la
+        mount_dir: /blob2
+environment:
+  image: teslazhu/pretrainmol36:latest
+
+code:
+    local_dir: C:\Users\yinxia\Desktop\src 
+
+search:
+  job_template:
+    name: LL6-{idx}
+    sku: G1
+    command:
+    - bash /blob2/yinxia/wu2/sandbox/SearchEngine/extract_feat_10M.sh {idx}
+  type: grid
+  max_trials: 100
+  params:
+  - name: idx
+    spec: discrete
+    values: [20, 25, 30, 35, 40, 45, 50, 55, 60]
+
+
