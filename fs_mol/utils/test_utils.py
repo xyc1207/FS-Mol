@@ -97,7 +97,10 @@ def set_up_dataset(args: argparse.Namespace, **kwargs):
         ), "If DATA_PATH is a directory it must contain test/ sub-directory for evaluation."
 
         return FSMolDataset.from_directory(
-            args.DATA_PATH[0], task_list_file=RichPath.create(args.task_list_file), **kwargs
+            args.DATA_PATH[0], 
+            task_list_file=RichPath.create(args.task_list_file), 
+            feature_folder=args.feature_folder,
+            **kwargs
         )
     else:
         return FSMolDataset(test_data_paths=[RichPath.create(p) for p in args.DATA_PATH], **kwargs)
@@ -112,7 +115,7 @@ def set_up_test_run(
     os.makedirs(out_dir, exist_ok=True)
     set_up_logging(os.path.join(out_dir, f"{run_name}.log"))
 
-    dataset = set_up_dataset(args)
+    dataset = set_up_dataset(args, num_workers=0)
     logger.info(
         f"Starting test run {run_name} on {len(dataset.get_task_names(DataFold.TEST))} assays"
     )
@@ -209,7 +212,6 @@ def eval_model(
                 test_size_or_ratio=test_size_or_ratio,
                 allow_smaller_test=True,
             )
-
             for run_idx in range(num_samples):
                 logger.info(f"=== Evaluating on {task.name}, #train {train_size}, run {run_idx}")
                 with prefix_log_msgs(
@@ -232,7 +234,6 @@ def eval_model(
                         continue
 
                     test_metrics = test_model_fn(task_sample, temp_out_folder, local_seed)
-
                     test_results.append(
                         FSMolTaskSampleEvalResults(
                             task_name=task.name,
@@ -244,7 +245,6 @@ def eval_model(
                             **dataclasses.asdict(test_metrics),
                         )
                     )
-
         task_to_results[task.name] = test_results
 
         if out_dir is not None:

@@ -33,6 +33,13 @@ def parse_command_line():
         help="File to load model from (determines model architecture).",
     )
 
+    parser.add_argument(
+        "--feature-folder",
+        type=str,
+        default=None,
+        help="The folder of pre-trained features",
+    )
+
     add_eval_cli_args(parser)
 
     parser.add_argument(
@@ -93,7 +100,8 @@ def main():
     model = PrototypicalNetworkTrainer.build_from_model_file(
         model_weights_file,
         device=device,
-    )
+    ).to(device)
+
 
     test(
         model,
@@ -107,12 +115,12 @@ def main():
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception:
-        import traceback
-        import pdb
-
-        _, value, tb = sys.exc_info()
-        traceback.print_exc()
-        pdb.post_mortem(tb)
+    # try:
+    main()
+    # except Exception:
+    #    import traceback
+    #    import pdb
+    #
+    #    _, value, tb = sys.exc_info()
+    #    traceback.print_exc()
+    #    pdb.post_mortem(tb)
